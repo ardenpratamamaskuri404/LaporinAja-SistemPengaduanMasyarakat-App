@@ -1,0 +1,124 @@
+========================================================================================
+PANDUAN PENGUJIAN API POSTMAN - SISTEM PELAPORAN PENGADUAN (LaporinAja)
+========================================================================================
+
+Dokumen ini memuat panduan lengkap pengetesan endpoint API backend LaporinAja di Postman, 
+disesuaikan dengan alur 3-Peran (Masyarakat, Admin Kota, Super Admin) serta penambahan 
+fitur bukti foto penyelesaian dan rating ulasan.
+
+URL Dasar (Base URL): http://localhost:5000 
+
+----------------------------------------------------------------------------------------
+CARA SETTING AUTENTIKASI (BEARER TOKEN) DI POSTMAN:
+----------------------------------------------------------------------------------------
+1. Lakukan request **Login** terlebih dahulu.
+2. Copy string `token` yang dikembalikan di response JSON.
+3. Di request berikutnya yang butuh Auth (misal: buat laporan, update status, rating):
+   - Masuk ke tab **"Authorization"** di bawah nama URL request.
+   - Pada dropdown **Type**, pilih **"Bearer Token"**.
+   - Paste string token tersebut pada kolom **"Token"** di sebelah kanan.
+
+========================================================================================
+1. GRUP ENDPOINT PUBLIC (Tanpa Autentikasi / Bebas Akses)
+========================================================================================
+
+- **Register Akun Baru**: `POST /api/auth/register`
+  * Body -> raw -> JSON:
+    ```json
+    {
+      "nama": "Siti",
+      "email": "siti@depok.com",
+      "password": "password123",
+      "provinsi": "Jawa Barat",
+      "kota": "Depok",
+      "no_telp": "081234567890",
+      "pekerjaan": "PNS"
+    }
+    ```
+- **Login Akun**: `POST /api/auth/login`
+  * Body -> raw -> JSON:
+    ```json
+    {
+      "email": "siti@depok.com",
+      "password": "password123"
+    }
+    ```
+  * *Simpan token hasil response JSON untuk digunakan sebagai Bearer Token.*
+
+- **Get Semua Laporan (Public Feed)**: `GET /api/laporan`
+- **Get Detail Laporan Spesifik**: `GET /api/laporan/:id`  (Ganti `:id` dengan ID Laporan)
+- **Get Semua Komentar Laporan**: `GET /api/comment/:laporanId`
+
+========================================================================================
+2. GRUP ENDPOINT MASYARAKAT (Butuh Token - Role: MASYARAKAT)
+========================================================================================
+
+- **Buat Laporan Baru (Multipart Form-Data)**: `POST /api/laporan`
+  * *PENTING: Jangan set header Content-Type manual di Postman.*
+  * Tab Body ➔ Pilih **form-data** ➔ Masukkan key-value berikut:
+    - `judul` (Text): "Saluran Air Depok Baru Mampet"
+    - `deskripsi` (Text): "Tumpukan sampah plastik menyumbat got besar utama."
+    - `kategori` (Text): "Infrastruktur"
+    - `urgensi` (Text): "Sedang"
+    - `latitude` (Text): "-6.385589"
+    - `longitude` (Text): "106.830711"
+    - `alamat` (Text): "Jl. Margonda Raya No. 100, Depok Baru"
+    - `kelurahan` (Text): "Depok Baru"
+    - `kecamatan` (Text): "Pancoran Mas"
+    - `kota` (Text): "Depok"
+    - `foto` (File): *Ubah jenis key di dropdown ujung baris menjadi 'File' lalu pilih file gambar bukti* (Maksimal 3 foto).
+
+- **Tambah Komentar Diskusi**: `POST /api/comment/:laporanId`
+  * Body -> raw -> JSON:
+    ```json
+    {
+      "isi": "Terima kasih atas responnya pak, mohon segera ditinjau gotnya."
+    }
+    ```
+
+- **Kirim Rating & Ulasan Layanan (Saat Status SELESAI)**: `POST /api/laporan/:id/rating`
+  * Body -> raw -> JSON:
+    ```json
+    {
+      "nilai": 5,
+      "komentar": "Pelayanan dinas Depok sangat cepat dan jembatan kokoh!"
+    }
+    ```
+
+- **Ekspor & Unduh Laporan Resmi (PDF)**: `GET /api/laporan/:id/pdf`
+  * *Request ini mengembalikan berkas binary PDF laporan resmi.*
+
+========================================================================================
+3. GRUP ENDPOINT ADMIN KOTA & SUPER ADMIN (Butuh Token - Role: ADMIN / SUPER_ADMIN)
+========================================================================================
+
+- **Ambil Alih Laporan (Assign to Me)**: `PUT /api/laporan/:id/assign`
+  * *Mengikat laporan ke Admin yang login (`adminId` terisi).*
+
+- **Update Status Laporan & Unggah Bukti Penyelesaian**: `PUT /api/laporan/:id/status`
+  * **Opsi 1: Mengubah Status ke PROSES/DITOLAK**
+    * Body -> raw -> JSON:
+      ```json
+      {
+        "status": "PROSES"
+      }
+      ```
+  * **Opsi 2: Mengubah Status ke SELESAI (Dengan Bukti Foto & Keterangan Kerja)**
+    * Body -> raw -> JSON:
+      ```json
+      {
+        "status": "SELESAI",
+        "keterangan_selesai": "Saluran air Depok Baru telah berhasil dikeruk dan dibersihkan dari sampah plastik setinggi 1 meter oleh tim Dinas LH Depok.",
+        "foto_selesai": "/uploads/bukti_selesai_depok_123.jpg"
+      }
+      ```
+
+- **Get Semua Pengguna (Super Admin)**: `GET /api/users`
+- **Ubah Otoritas/Role Pengguna (Super Admin)**: `PUT /api/users/:id/role`
+  * Body -> raw -> JSON:
+    ```json
+    {
+      "role": "ADMIN"
+    }
+    ```
+========================================================================================

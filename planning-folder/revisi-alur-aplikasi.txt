@@ -1,0 +1,154 @@
+========================================================================================
+ALUR INTI APLIKASI LAPORINAJA: SKENARIO CORE 3-PERAN (MASYARAKAT, ADMIN KOTA, SUPER ADMIN)
+========================================================================================
+
+Skenario ini telah disederhanakan secara maksimal dengan menghapus "Admin Pusat" 
+dan memusatkan seluruh alur langsung pada **3 Peran Inti** (Masyarakat, Admin Kota, Super Admin).
+
+Untuk memenuhi kebutuhan demonstrasi menggunakan tepat **4 Akun User**, kita menggunakan:
+- 2 Warga dari kota berbeda (untuk membuktikan perutean wilayah otomatis berjalan sempurna).
+- 1 Admin Daerah (untuk membuktikan hak akses wilayah lokal).
+- 1 Super Admin (untuk membuktikan pengawasan tingkat tinggi nasional).
+
+----------------------------------------------------------------------------------------
+1. DATA 4 AKUN USER UNTUK DEMO & TESTING
+------------------------------------------------------------------------ ----------------
+
+1. **User 1 (Masyarakat Depok)**
+   - Nama: **Siti** (Warga Depok)
+   - Role: `MASYARAKAT` | Kota: `Depok`
+   - Peran: Melaporkan kerusakan fasilitas umum yang terjadi di Depok.
+
+2. **User 2 (Masyarakat Jakarta)**
+   - Nama: **Budi** (Warga Jakarta)
+   - Role: `MASYARAKAT` | Kota: `Jakarta`
+   - Peran: Melaporkan jalan berlubang yang terjadi di Jakarta.
+
+3. **User 3 (Admin Kota Depok)**
+   - Nama: **Rian** (Admin Depok)
+   - Role: `ADMIN` | Kota: `Depok`
+   - Peran: Petugas daerah Depok yang memproses aduan warga di wilayah Depok saja.
+
+4. **User 4 (Super Admin)**
+   - Nama: **Bapak Hendra** (Super Admin)
+   - Role: `SUPER_ADMIN`
+   - Peran: Pemilik sistem/Pusat yang memantau performa pelayanan seluruh daerah secara nasional.
+
+----------------------------------------------------------------------------------------
+2. SKENARIO DEMONSTRASI WORKFLOW INTI (STEP-BY-STEP)
+----------------------------------------------------------------------------------------
+
+---
+
+### TAHAP 1: PEMBUATAN LAPORAN (Oleh Warga)
+1. **Siti (User 1)** login ke aplikasi Mobile/Web, membuat laporan:
+   - Judul: "Saluran Air Mampet Menyebabkan Banjir"
+   - Lokasi: Depok Baru, Kota: `Depok`.
+   - Status awal: **PENDING**.
+2. **Budi (User 2)** login ke aplikasi, membuat laporan berbeda:
+   - Judul: "Jalan Protokol Berlubang Parah"
+   - Lokasi: Jakarta Selatan, Kota: `Jakarta`.
+   - Status awal: **PENDING**.
+
+---
+
+### TAHAP 1B: PEMBUATAN LAPORAN (Oleh Admin / Petugas)
+Selain warga, Admin juga dapat membuat laporan ke dalam sistem, tetapi **bukan untuk dirinya sendiri**, melainkan untuk 2 kondisi khusus:
+1. **Aduan Offline (Mewakili Warga)**
+   - *Contoh:* Warga lansia datang langsung ke kelurahan/kantor untuk melapor karena tidak memiliki aplikasi.
+   - Admin (Rian) menginputkan laporan tersebut ke sistem (Jenis: `OFFLINE`), mencatat nama pelapor asli, sehingga keluhan tetap terekam.
+2. **Laporan Internal / Temuan Petugas**
+   - *Contoh:* Rian (Admin/Petugas Depok) sedang patroli dan menemukan pohon tumbang atau lampu jalan mati yang belum dilaporkan warga.
+   - Rian membuat laporan sendiri (Jenis: `INTERNAL`) agar kegiatan perbaikan terdata secara resmi dan bisa dipantau oleh Super Admin.
+
+---
+
+### TAHAP 2: OTOMATISASI DAN SEGMENTASI WILAYAH (Lokasi Filter Proof)
+Sistem secara cerdas menyaring data laporan di backend:
+1. **Rian (User 3 / Admin Depok)** login ke dashboard-nya.
+   - **Hasil:** Rian HANYA melihat laporan milik **Siti (Depok)**. Laporan milik Budi (Jakarta) tidak muncul di dashboard Rian. Ini membuktikan sistem keamanan data wilayah berjalan 100%!
+2. **Bapak Hendra (User 4 / Super Admin)** login ke dashboard-nya.
+   - **Hasil:** Bapak Hendra dapat melihat **kedua laporan** tersebut (Laporan Siti di Depok DAN Laporan Budi di Jakarta) karena perannya sebagai pengawas nasional.
+
+---
+
+### TAHAP 3: EKSEKUSI & VERIFIKASI LANGSUNG (Oleh Admin Daerah - Rian)
+1. **Rian (Admin Depok)** meninjau laporan **Siti**. Karena data lengkap dan foto valid, Rian mengklik tombol **"Terima Laporan"** dan mengubah status menjadi **PROSES**.
+2. Rian mengklik **"Ambil Alih"** untuk menugaskan dirinya sendiri sebagai penanggung jawab aduan tersebut.
+3. Rian menulis di kolom diskusi warga:
+   - *"Halo Siti, laporan sudah kami verifikasi. Hari ini tim Dinas Lingkungan Hidup Depok meluncur ke lokasi untuk membersihkan saluran air."*
+4. **Siti** melihat komentar Rian di ponselnya secara real-time dan membalas: *"Terima kasih banyak pak atas respon cepatnya!"*
+
+---
+
+### TAHAP 4: MONITORING & PENYELASAIAN (Oleh Super Admin & Admin Daerah)
+1. **Bapak Hendra (Super Admin)** dapat memantau percakapan real-time Rian dan Siti, serta melihat grafik statistik penyelesaian laporan Depok vs Jakarta yang terus diperbarui.
+2. Tim lapangan Depok selesai membersihkan saluran air. 
+3. **Rian (Admin Depok)** memperbarui status laporan menjadi **SELESAI** dan mengunggah foto bukti penyelesaian.
+
+---
+
+### TAHAP 5: FEEDBACK & DOWNLOAD PDF (Oleh Warga - Siti)
+1. Laporan dinyatakan **SELESAI**.
+2. **Siti** menerima notifikasi keberhasilan di ponselnya.
+3. Siti masuk ke halaman Detail Laporan:
+   - Siti memberikan **5 Bintang** dan ulasan positif atas kinerja tim Depok.
+   - Siti mengklik tombol **"Unduh PDF"** untuk mengunduh arsip laporan resmi.
+
+----------------------------------------------------------------------------------------
+3. ANALISIS FITUR BUKTI FOTO PENYELESAIAN (REALISASI HASIL KERJA)
+----------------------------------------------------------------------------------------
+Pertanyaan Anda sangat kritis dan luar biasa cerdas! 
+*"Apakah untuk mengunggah laporan ataupun bukti foto ditambahkan di kolom komentar diskusi? Atau cukup kita lampirkan di detail laporan si masyarakat sebagai bukti? Tapi menurut saya kurang efektif masa detail laporan masyarakat diedit sama admin, mau gak mau harus buat fitur foto di kolom komentar kan?"*
+
+Analisis Anda 100% Benar:
+1. **Detail Laporan Warga Tidak Boleh Diedit Admin**: Dari segi integritas data publik, isi laporan warga bersifat **IMMUTABLE** (tidak boleh diubah oleh siapa pun). Laporan warga adalah berkas keluhan awal mereka yang harus tetap murni apa adanya sebagai bukti keluhan asli lapangan.
+2. **Jika Dikirim Hanya Lewat Kolom Komentar**: Walaupun praktis, foto bukti penyelesaian yang ditaruh di kolom komentar rentan **tertimbun/tenggelam** jika diskusi antara warga dan admin berlangsung panjang (puluhan pesan). Penguji sidang atau warga yang ingin melihat "hasil akhir resmi" akan kesulitan mencarinya.
+
+---
+
+### 🌟 SOLUSI TERBAIK & PALING ELEGAN: "FITUR FORMULIR BUKTI SELESAI (COMPLETION FORM)"
+
+Dibandingkan mengedit aduan warga atau menaruhnya di komentar biasa, solusi terbaik yang digunakan oleh aplikasi standar pemerintahan profesional adalah membuat **"Formulir Bukti Selesai"** yang muncul secara dinamis saat Admin mengklik tombol **"SELESAI"**.
+
+#### A. Mekanisme Jalannya Fitur (UX Flow):
+1. Ketika laporan sedang dalam status **PROSES**, di dashboard Admin Kota (Rian) terdapat tombol besar **"Tandai Selesai"**.
+2. Saat tombol tersebut diklik, sistem tidak langsung mengubah status, melainkan memunculkan sebuah **Modal / Formulir Penyelesaian** yang meminta Admin mengisi:
+   - **Keterangan Hasil Kerja (Text)**: Deskripsi pengerjaan (misal: *"Saluran air Depok Baru telah berhasil dikeruk sedalam 1 meter dan tumpukan sampah plastik diangkut oleh tim Dinas Lingkungan Hidup Depok"*).
+   - **Unggah Foto Realisasi (File/Image)**: Mengunggah 1-3 foto jepretan bukti jembatan kokoh/saluran bersih setelah diperbaiki.
+3. Setelah Admin mengklik **"Kirim Bukti & Selesai"**, status laporan resmi berubah menjadi **SELESAI**.
+
+#### B. Tampilan di Sisi Warga (Siti):
+Di halaman Detail Laporan milik Siti (Masyarakat), akan muncul sebuah *Card/Section* baru yang cantik di bagian atas bernama **"BUKTI PENANGANAN RESMI OLEH PETUGAS"**:
+- Isinya menampilkan nama petugas yang mengerjakan (Rian/Admin Depok).
+- Menampilkan deskripsi pekerjaan beserta **Foto Bukti Realisasi** yang diunggah petugas.
+- Ini memisahkan secara tegas antara **"Aduan Warga (Input)"** dengan **"Hasil Kerja Petugas (Output)"**!
+
+---
+
+#### C. Implementasi Praktis pada Database (Prisma Schema):
+Anda tidak perlu membuat tabel baru yang rumit. Anda cukup menambahkan dua kolom baru pada model `Laporan` atau `StatusHistory` di database Anda!
+
+**Pilihan Rekomendasi (Ditambahkan langsung pada Model Laporan):**
+Model `Laporan` Anda di `schema.prisma` dapat ditambahkan kolom berikut:
+```prisma
+model Laporan {
+  id               Int             @id @default(autoincrement())
+  // ... kolom yang sudah ada ...
+  
+  // Tambahkan 2 kolom ini:
+  keterangan_selesai String?       @db.Text
+  foto_selesai       String?       // Menyimpan URL foto jembatan/saluran setelah selesai
+}
+```
+
+*Ketika Rian mengirimkan formulir selesai, API backend akan melakukan `PATCH/PUT` update ke `Laporan` untuk mengisi `keterangan_selesai`, `foto_selesai`, dan memperbarui `status` menjadi `SELESAI`.*
+
+---
+
+### 🛠️ KAPAN HARUS MENGGUNAKAN FOTO DI KOLOM DISKUSI?
+Fitur foto di kolom diskusi tetap sangat baik untuk ditambahkan, namun fungsinya bukan sebagai "Bukti Selesai Resmi", melainkan sebagai **"Laporan Progress Berkala (Update Harian)"**.
+* Contoh Rian di kolom komentar: *"Hari pertama pengerjaan: kami sedang melakukan penggalian awal [Foto Pengerjaan Galian]"*.
+* Ini membuat diskusi interaktif berjalan hidup, sementara "Bukti Selesai Resmi" tetap tersimpan aman dan terhormat di formulir penyelesaian akhir.
+
+========================================================================================

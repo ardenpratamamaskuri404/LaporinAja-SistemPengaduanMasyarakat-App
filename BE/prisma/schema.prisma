@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model activitylog {
+  id        Int      @id @default(autoincrement())
+  aksi      String
+  detail    String?  @db.Text
+  userId    Int
+  createdAt DateTime @default(now())
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ActivityLog_userId_fkey")
+
+  @@index([userId], map: "ActivityLog_userId_fkey")
+}
+
+model comment {
+  id        Int      @id @default(autoincrement())
+  isi       String   @db.Text
+  userId    Int
+  laporanId Int
+  createdAt DateTime @default(now())
+  laporan   laporan  @relation(fields: [laporanId], references: [id], onDelete: Cascade, map: "Comment_laporanId_fkey")
+  users     users    @relation(fields: [userId], references: [id], map: "Comment_userId_fkey")
+
+  @@index([laporanId], map: "Comment_laporanId_fkey")
+  @@index([userId], map: "Comment_userId_fkey")
+}
+
+// ✅ Tabel kategori tetap ada, tapi tidak berelasi ke laporan
+model kategori {
+  id        Int      @id @default(autoincrement())
+  nama      String   @unique(map: "Kategori_nama_key")
+  slug      String   @unique(map: "Kategori_slug_key")
+  warna     String?  @db.VarChar(50)
+  icon      String?  @db.VarChar(50)
+  deskripsi String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model laporan {
+  id                           Int                   @id @default(autoincrement())
+  judul                        String
+  deskripsi                    String                @db.Text
+  kategori                     String                @default("Lainnya") // ✅ Kembali jadi String biasa
+  status                       laporan_status        @default(PENDING)
+  urgensi                      String?               @default("Sedang") @db.VarChar(50)
+  foto                         String?
+  latitude                     Decimal?              @db.Decimal(10, 8)
+  longitude                    Decimal?              @db.Decimal(11, 8)
+  alamat                       String?               @db.Text
+  kelurahan                    String?               @db.VarChar(100)
+  kecamatan                    String?               @db.VarChar(100)
+  kota                         String?               @db.VarChar(100)
+  tanggal_kejadian             DateTime?             @db.Date
+  riwayat                      String?               @default("Tidak") @db.VarChar(20)
+  keterangan_selesai           String?               @db.Text
+  jenis_laporan                laporan_jenis_laporan @default(PUBLIK)
+  nama_pelapor_offline         String?
+  userId                       Int
+  adminId                      Int?
+  createdAt                    DateTime              @default(now())
+  updatedAt                    DateTime              @default(now()) @updatedAt
+  comment                      comment[]
+  assignedAdmin                users?                @relation("laporan_adminIdTousers", fields: [adminId], references: [id], map: "Laporan_adminId_fkey")
+  user                         users                 @relation("laporan_userIdTousers", fields: [userId], references: [id], map: "Laporan_userId_fkey")
+  fotos                        laporanfoto[]
+  fotosSelesai                 laporanselesaifoto[]
+  notifikasi                   notifikasi[]
+  rating                       rating?
+  statushistory                statushistory[]
+
+  @@index([adminId], map: "Laporan_adminId_fkey")
+  @@index([userId], map: "Laporan_userId_fkey")
+  @@map("Laporan")
+}
+
+model laporanfoto {
+  id        Int     @id @default(autoincrement())
+  url       String
+  laporanId Int
+  laporan   laporan @relation(fields: [laporanId], references: [id], onDelete: Cascade, map: "LaporanFoto_laporanId_fkey")
+
+  @@index([laporanId], map: "LaporanFoto_laporanId_fkey")
+  @@map("LaporanFoto")
+}
+
+model laporanselesaifoto {
+  id        Int     @id @default(autoincrement())
+  url       String
+  laporanId Int
+  laporan   laporan @relation(fields: [laporanId], references: [id], onDelete: Cascade, map: "LaporanSelesaiFoto_laporanId_fkey")
+
+  @@index([laporanId], map: "LaporanSelesaiFoto_laporanId_fkey")
+  @@map("LaporanSelesaiFoto")
+}
+
+model notifikasi {
+  id          Int      @id @default(autoincrement())
+  pesan       String   @db.VarChar(255)
+  sudahDibaca Boolean  @default(false)
+  tersembunyi Boolean  @default(false)
+  userId      Int
+  laporanId   Int?
+  createdAt   DateTime @default(now())
+  laporan     laporan? @relation(fields: [laporanId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Notifikasi_laporanId_fkey")
+  users       users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Notifikasi_userId_fkey")
+
+  @@index([laporanId], map: "Notifikasi_laporanId_fkey")
+  @@index([userId], map: "Notifikasi_userId_fkey")
+}
+
+model rating {
+  id        Int      @id @default(autoincrement())
+  nilai     Int      @default(0)
+  komentar  String?  @db.Text
+  userId    Int
+  laporanId Int      @unique(map: "Rating_laporanId_key")
+  createdAt DateTime @default(now())
+  laporan   laporan  @relation(fields: [laporanId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Rating_laporanId_fkey")
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Rating_userId_fkey")
+
+  @@index([userId], map: "Rating_userId_fkey")
+}
+
+model statushistory {
+  id         Int                      @id @default(autoincrement())
+  statusLama statushistory_statusLama
+  statusBaru statushistory_statusBaru
+  laporanId  Int
+  changedBy  Int
+  createdAt  DateTime                 @default(now())
+  users      users                    @relation(fields: [changedBy], references: [id], onUpdate: NoAction, map: "StatusHistory_changedBy_fkey")
+  laporan    laporan                  @relation(fields: [laporanId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "StatusHistory_laporanId_fkey")
+
+  @@index([changedBy], map: "StatusHistory_changedBy_fkey")
+  @@index([laporanId], map: "StatusHistory_laporanId_fkey")
+}
+
+model users {
+  id                             Int             @id @default(autoincrement())
+  nama                           String
+  email                          String          @unique(map: "Users_email_key")
+  password                       String
+  role                           users_role      @default(MASYARAKAT)
+  no_telp                        String?         @db.VarChar(20)
+  provinsi                       String?         @db.VarChar(100)
+  kota                           String?         @db.VarChar(100)
+  alamat                         String?         @db.Text
+  pekerjaan                      String?         @db.VarChar(100)
+  foto_profil                    String?         @db.VarChar(255)
+  agree_terms                    Boolean         @default(false)
+  createdAt                      DateTime        @default(now())
+  activitylog                    activitylog[]
+  comment                        comment[]
+  assignedLaporan                laporan[]       @relation("laporan_adminIdTousers")
+  laporan                        laporan[]       @relation("laporan_userIdTousers")
+  notifikasi                     notifikasi[]
+  rating                         rating[]
+  statushistory                  statushistory[]
+}
+
+enum statushistory_statusLama {
+  PENDING
+  PROSES
+  SELESAI
+  DITOLAK
+}
+
+enum statushistory_statusBaru {
+  PENDING
+  PROSES
+  SELESAI
+  DITOLAK
+}
+
+enum laporan_status {
+  PENDING
+  PROSES
+  SELESAI
+  DITOLAK
+}
+
+enum users_role {
+  SUPER_ADMIN
+  ADMIN
+  MASYARAKAT
+}
+
+enum laporan_jenis_laporan {
+  PUBLIK
+  INTERNAL
+  OFFLINE
+}
