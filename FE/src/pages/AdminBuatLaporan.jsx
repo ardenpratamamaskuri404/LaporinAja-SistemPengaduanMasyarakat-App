@@ -137,20 +137,68 @@ const AdminBuatLaporan = () => {
     localStorage.setItem('draft_laporan', JSON.stringify({ ...draftData, step }));
   }, [formData, step]);
 
+  // Reverse geocoding function
+  const fetchAddressFromCoords = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'Accept-Language': 'id-ID,id;q=0.9'
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.address) {
+          const address = data.address;
+          
+          // Build alamat lengkap
+          let alamatLengkap = '';
+          if (address.road) alamatLengkap += address.road;
+          if (address.house_number) alamatLengkap += ` No. ${address.house_number}`;
+          if (address.neighbourhood) alamatLengkap += `, ${address.neighbourhood}`;
+          
+          setFormData(prev => ({
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+            alamat: alamatLengkap || prev.alamat,
+            kelurahan: address.village || address.neighbourhood || address.quarter || address.hamlet || prev.kelurahan,
+            kecamatan: address.subdistrict || address.city_district || address.suburb || address.district || address.township || address.municipality || prev.kecamatan,
+            kota: address.city || address.town || address.city_municipal || address.county || address.municipality || prev.kota
+          }));
+        }
+      }
+    } catch (geoErr) {
+      console.error('Reverse geocoding error:', geoErr);
+      // If geocoding fails, at least set the coordinates
+      setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+    }
+  };
+
   // Map click handler component
   const LocationPicker = () => {
-    useMapEvents({
+    const map = useMapEvents({
       click(e) {
-        setFormData({ ...formData, latitude: e.latlng.lat, longitude: e.latlng.lng });
+        fetchAddressFromCoords(e.latlng.lat, e.latlng.lng);
       },
     });
+
+    useEffect(() => {
+      if (formData.latitude && formData.longitude && map) {
+        map.setView([formData.latitude, formData.longitude], map.getZoom());
+      }
+    }, [formData.latitude, formData.longitude, map]);
+
     return (
       <Marker position={[formData.latitude, formData.longitude]} />
     );
   };
 
   const handleNext = () => {
-    if (step === 1 && (!formData.judul || !formData.kategoriId || !formData.urgensi)) {
+    if (step === 1 && (!formData.judul || !formData.kategori || !formData.urgensi)) {
       setError(lang === 'ID' ? 'Harap lengkapi semua bidang pada langkah ini.' : 'Please fill all fields in this step.');
       return;
     }
@@ -174,7 +222,7 @@ const AdminBuatLaporan = () => {
   const handleExitCancel = () => {
     setShowExitModal(false);
     setStep(1);
-    setFormData(prev => ({ ...prev, judul: '', kategoriId: '', urgensi: 'Sedang', deskripsi: '', tanggal: '', riwayat: 'Tidak', alamat: '', kelurahan: '', kecamatan: '', jenis_laporan: 'INTERNAL', nama_pelapor_offline: '', foto: [] }));
+    setFormData(prev => ({ ...prev, judul: '', kategori: '', urgensi: 'Sedang', deskripsi: '', tanggal: '', riwayat: 'Tidak', alamat: '', kelurahan: '', kecamatan: '', jenis_laporan: 'INTERNAL', nama_pelapor_offline: '', foto: [] }));
     setPreviews([]);
     setAgree(false);
     setPendingExit(false);
@@ -190,11 +238,7 @@ const AdminBuatLaporan = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setFormData(prev => ({
-            ...prev,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          }));
+          fetchAddressFromCoords(position.coords.latitude, position.coords.longitude);
         },
         (err) => {
           alert(lang === 'ID' ? 'Gagal mendapatkan lokasi. Pastikan GPS aktif.' : 'Failed to get location. Make sure GPS is active.');

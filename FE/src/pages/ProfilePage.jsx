@@ -363,6 +363,96 @@ const ProfilePage = () => {
                           </div>
                         </div>
 
+                        <div>
+                          <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">{lang === 'ID' ? 'Provinsi' : 'Province'}</label>
+                          <div className="relative group">
+                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#2d5a1e]" />
+                            <input 
+                              type="text" 
+                              list="provinsi-list" 
+                              name="provinsi" 
+                              value={formData.provinsi} 
+                              onChange={handleInfoChange} 
+                              disabled={!isEditing} 
+                              placeholder={lang === 'ID' ? 'Pilih atau ketik Provinsi...' : 'Choose or type Province...'} 
+                              className="w-full bg-gray-50 dark:bg-gray-800 border border-transparent focus:border-[#2d5a1e] rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-gray-800 dark:text-white focus:outline-none transition-all disabled:opacity-70" 
+                            />
+                            <datalist id="provinsi-list">
+                              <option value="DKI Jakarta" />
+                              <option value="Jawa Barat" />
+                              <option value="Banten" />
+                              <option value="Jawa Tengah" />
+                              <option value="Jawa Timur" />
+                              <option value="DI Yogyakarta" />
+                              <option value="Bali" />
+                              <option value="Sumatera Utara" />
+                              <option value="Sumatera Barat" />
+                              <option value="Riau" />
+                              <option value="Kepulauan Riau" />
+                              <option value="Jambi" />
+                              <option value="Sumatera Selatan" />
+                              <option value="Bangka Belitung" />
+                              <option value="Bengkulu" />
+                              <option value="Lampung" />
+                              <option value="Kalimantan Barat" />
+                              <option value="Kalimantan Tengah" />
+                              <option value="Kalimantan Selatan" />
+                              <option value="Kalimantan Timur" />
+                              <option value="Kalimantan Utara" />
+                              <option value="Sulawesi Utara" />
+                              <option value="Gorontalo" />
+                              <option value="Sulawesi Tengah" />
+                              <option value="Sulawesi Barat" />
+                              <option value="Sulawesi Selatan" />
+                              <option value="Sulawesi Tenggara" />
+                              <option value="Nusa Tenggara Barat" />
+                              <option value="Nusa Tenggara Timur" />
+                              <option value="Maluku" />
+                              <option value="Maluku Utara" />
+                              <option value="Papua" />
+                              <option value="Papua Barat" />
+                            </datalist>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">{lang === 'ID' ? 'Kota / Kabupaten' : 'City / Regency'}</label>
+                          <div className="relative group">
+                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#2d5a1e]" />
+                            <input 
+                              type="text" 
+                              list="kota-list" 
+                              name="kota" 
+                              value={formData.kota} 
+                              onChange={handleInfoChange} 
+                              disabled={!isEditing} 
+                              placeholder={lang === 'ID' ? 'Pilih atau ketik Kota/Kabupaten...' : 'Choose or type City/Regency...'} 
+                              className="w-full bg-gray-50 dark:bg-gray-800 border border-transparent focus:border-[#2d5a1e] rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-gray-800 dark:text-white focus:outline-none transition-all disabled:opacity-70" 
+                            />
+                            <datalist id="kota-list">
+                              <option value="Jakarta Timur" />
+                              <option value="Jakarta Selatan" />
+                              <option value="Jakarta Pusat" />
+                              <option value="Jakarta Barat" />
+                              <option value="Jakarta Utara" />
+                              <option value="Bogor" />
+                              <option value="Depok" />
+                              <option value="Tangerang" />
+                              <option value="Tangerang Selatan" />
+                              <option value="Bekasi" />
+                              <option value="Bandung" />
+                              <option value="Subang" />
+                              <option value="Surabaya" />
+                              <option value="Semarang" />
+                              <option value="Yogyakarta" />
+                              <option value="Medan" />
+                              <option value="Makassar" />
+                              <option value="Palembang" />
+                              <option value="Denpasar" />
+                            </datalist>
+                          </div>
+                        </div>
+
                         <div className="md:col-span-2">
                           <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">{t.profile_label_address}</label>
                           <div className="relative group">
@@ -376,7 +466,6 @@ const ProfilePage = () => {
                               placeholder="Alamat lengkap..."
                               className="w-full bg-gray-50 dark:bg-gray-800 border border-transparent focus:border-[#2d5a1e] rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-gray-800 dark:text-white focus:outline-none transition-all resize-none disabled:opacity-70"
                             ></textarea>
-
                           </div>
                         </div>
                       </div>

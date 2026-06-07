@@ -34,11 +34,9 @@ const StatisticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           proses: s.proses || 0,
           pending: s.pending || 0,
           ditolak: s.ditolak || 0,
-          categories: [
-            { name: 'Infrastruktur', count: 12, color: '#4a7c44', legendFontColor: '#7f7f7f', legendFontSize: 12 },
-            { name: 'Kebersihan', count: 8, color: '#99c399', legendFontColor: '#7f7f7f', legendFontSize: 12 },
-            { name: 'Keamanan', count: 5, color: '#f59e0b', legendFontColor: '#7f7f7f', legendFontSize: 12 },
-            { name: 'Lainnya', count: 3, color: '#94a3b8', legendFontColor: '#7f7f7f', legendFontSize: 12 },
+          weeklyTrend: s.weeklyTrend || [0, 0, 0, 0, 0, 0, 0],
+          categories: s.categories || [
+            { name: 'Belum Ada', count: 1, color: '#94a3b8', legendFontColor: '#7f7f7f', legendFontSize: 12 },
           ]
         });
       }
@@ -115,7 +113,7 @@ const StatisticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <BarChart
               data={{
                 labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-                datasets: [{ data: [2, 4, 1, 5, 3, 2, 0] }]
+                datasets: [{ data: stats.weeklyTrend }]
               }}
               width={width - 40}
               height={220}

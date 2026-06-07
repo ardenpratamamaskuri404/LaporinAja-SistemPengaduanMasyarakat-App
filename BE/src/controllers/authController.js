@@ -4,7 +4,7 @@ const { generateToken, verifyToken } = require('../utils/jwt');
 
 const register = async (req, res) => {
   try {
-    const { nama, email, password, no_telp, provinsi, kota, agree_terms, role } = req.body;
+    const { nama, email, password, no_telp, provinsi, kota, pekerjaan, alamat, agree_terms, role } = req.body;
 
     if (!nama || !email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide all required fields', data: null });
@@ -42,6 +42,8 @@ const register = async (req, res) => {
         no_telp: no_telp || null,
         provinsi: provinsi || null,
         kota: kota || null,
+        pekerjaan: pekerjaan || null,
+        alamat: alamat || null,
         agree_terms: agree_terms === true || agree_terms === 'true',
         role: finalRole,
       },

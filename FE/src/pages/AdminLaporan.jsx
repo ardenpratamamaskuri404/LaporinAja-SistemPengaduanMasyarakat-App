@@ -446,19 +446,19 @@ const AdminLaporan = () => {
                             </div>
                          </td>
                          <td className="px-10 py-8">
-                            <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-orange-50 flex items-center justify-center text-sm font-black text-pink-600 overflow-hidden shadow-sm">
-                                  {report.user?.foto_profil ? (
-                                     <img src={`http://localhost:5000${report.user.foto_profil}`} className="w-full h-full object-cover" alt="User" />
-                                  ) : (
-                                     <img src={`https://ui-avatars.com/api/?name=${report.user?.nama || 'User'}&background=random`} className="w-full h-full object-cover" alt="User" />
-                                  )}
-                               </div>
-                               <div className="flex flex-col">
-                                  <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{report.user?.nama || 'Anonim'}</span>
-                               </div>
-                            </div>
-                         </td>
+                             <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
+                                   {report.user?.foto_profil ? (
+                                      <img src={`http://localhost:5000${report.user.foto_profil}`} className="w-full h-full rounded-full object-cover" alt="User" />
+                                   ) : (
+                                      <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(report.user?.nama || 'User')}&background=random&size=80&bold=true&format=svg`} className="w-full h-full rounded-full object-cover" alt="User" />
+                                   )}
+                                </div>
+                                <div className="flex flex-col">
+                                   <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{report.user?.nama || 'Anonim'}</span>
+                                </div>
+                             </div>
+                          </td>
                          <td className="px-10 py-8">
                             <span className="text-xs font-bold text-gray-400">{translateCategory(report.kategori || '-')}</span>
                          </td>
@@ -473,23 +473,25 @@ const AdminLaporan = () => {
                             </span>
                          </td>
                          <td className="px-10 py-8">
-                            <div className="flex items-center gap-4">
-                               {report.assignedAdmin ? (
-                                 <>
-                                    {report.assignedAdmin?.foto_profil ? (
-                                       <img src={`http://localhost:5000${report.assignedAdmin.foto_profil}`} className="w-10 h-10 rounded-full object-cover shadow-sm" alt="Admin" />
-                                    ) : (
-                                       <img src={`https://ui-avatars.com/api/?name=${report.assignedAdmin?.nama || 'Admin'}&background=random`} className="w-10 h-10 rounded-full object-cover shadow-sm" alt="Admin" />
-                                    )}
-                                    <div className="flex flex-col">
-                                       <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{report.assignedAdmin?.nama || 'Admin'}</span>
-                                    </div>
-                                 </>
-                               ) : (
-                                 <span className="text-xs font-bold text-gray-400 italic">Belum ditugaskan</span>
-                               )}
-                            </div>
-                         </td>
+                             <div className="flex items-center gap-4">
+                                {report.assignedAdmin ? (
+                                  <>
+                                     <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
+                                        {report.assignedAdmin?.foto_profil ? (
+                                           <img src={`http://localhost:5000${report.assignedAdmin.foto_profil}`} className="w-full h-full rounded-full object-cover" alt="Admin" />
+                                        ) : (
+                                           <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(report.assignedAdmin?.nama || 'Admin')}&background=random&size=80&bold=true&format=svg`} className="w-full h-full rounded-full object-cover" alt="Admin" />
+                                        )}
+                                     </div>
+                                     <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{report.assignedAdmin?.nama || 'Admin'}</span>
+                                     </div>
+                                  </>
+                                ) : (
+                                  <span className="text-xs font-bold text-gray-400 italic">Belum ditugaskan</span>
+                                )}
+                             </div>
+                          </td>
                          <td className="px-10 py-8 whitespace-nowrap">
                             <span className="text-sm font-bold text-gray-400">{new Date(report.createdAt).toLocaleDateString()}</span>
                          </td>

@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { translations } from '../utils/translations';
 import { 
-  ChevronRight, Edit, Trash2, Share2, 
+  ChevronRight, ChevronLeft, Edit, Trash2, Share2, 
   MapPin, Clock, Star, Copy, Send,
   Download, CheckCircle2, Loader2, AlertCircle, ArrowLeft,
   X, Plus, Camera, Image as ImageIcon, Map as MapIcon, Check, FileText, Lock
@@ -45,6 +45,43 @@ const DetailLaporanPage = () => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+
+  // Lightbox Modal States
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const openLightbox = (imagesList, startIndex) => {
+    setLightboxImages(imagesList);
+    setLightboxIndex(startIndex);
+    setLightboxOpen(true);
+  };
+
+  const handleNextLightbox = (e) => {
+    e.stopPropagation();
+    if (lightboxImages.length > 0) {
+      setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
+    }
+  };
+
+  const handlePrevLightbox = (e) => {
+    e.stopPropagation();
+    if (lightboxImages.length > 0) {
+      setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+    }
+  };
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!lightboxOpen) return;
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowRight') setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
+      if (e.key === 'ArrowLeft') setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, lightboxImages]);
   const [comment, setComment] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
   const commentsEndRef = useRef(null);
@@ -483,7 +520,13 @@ const DetailLaporanPage = () => {
                              <img 
                                src={photoToShow.url.startsWith('blob:') ? photoToShow.url : `http://localhost:5000${photoToShow.url}`} 
                                alt="Documentation" 
-                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 cursor-zoom-in"
+                               onClick={() => {
+                                  const urls = visiblePhotos.map(f => f.url.startsWith('blob:') ? f.url : `http://localhost:5000${f.url}`);
+                                  const newUrls = newPhotos.map(p => URL.createObjectURL(p));
+                                  const allUrls = [...urls, ...newUrls];
+                                  openLightbox(allUrls, activeImage);
+                                }}
                              />
                            ) : (
                              <div className="w-full h-full bg-gray-50 dark:bg-gray-800 flex flex-col items-center justify-center gap-3 text-gray-300">
@@ -570,8 +613,19 @@ const DetailLaporanPage = () => {
                       <h3 className="text-xs font-bold text-green-800/60 dark:text-green-400/60 uppercase tracking-widest mb-3">Foto Realisasi</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {report.fotosSelesai.map((foto, idx) => (
-                          <div key={idx} className="rounded-2xl overflow-hidden aspect-square bg-black/5">
-                            <img src={`http://localhost:5000${foto.url}`} alt={`Bukti Selesai ${idx + 1}`} className="w-full h-full object-cover" />
+                          <div 
+                            key={idx} 
+                            className="rounded-2xl overflow-hidden aspect-square bg-black/5 cursor-zoom-in group relative"
+                            onClick={() => {
+                              const urls = report.fotosSelesai.map(f => `http://localhost:5000${f.url}`);
+                              openLightbox(urls, idx);
+                            }}
+                          >
+                            <img 
+                              src={`http://localhost:5000${foto.url}`} 
+                              alt={`Bukti Selesai ${idx + 1}`} 
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                            />
                           </div>
                         ))}
                       </div>
@@ -899,6 +953,75 @@ const DetailLaporanPage = () => {
                   {isUpdatingStatus ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Kirim Bukti & Selesai
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Lightbox Modal */}
+        {lightboxOpen && lightboxImages.length > 0 && (
+          <div 
+            className="fixed inset-0 z-[3000] flex flex-col items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300 animate-fade-in"
+            onClick={() => setLightboxOpen(false)}
+          >
+            {/* Close Button */}
+            <button 
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all duration-200 z-[3100] active:scale-95"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Left Button */}
+            {lightboxImages.length > 1 && (
+              <button 
+                onClick={handlePrevLightbox}
+                className="absolute left-6 top-1/2 -translate-y-1/2 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all duration-200 z-[3100] active:scale-90"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Main Image Container */}
+            <div 
+              className="max-w-[90vw] max-h-[80vh] flex items-center justify-center select-none"
+              onClick={(e) => e.stopPropagation()} // Prevent close on image click
+            >
+              <img 
+                src={lightboxImages[lightboxIndex]} 
+                alt={`Lightbox image ${lightboxIndex + 1}`}
+                className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/5 animate-zoom-in"
+              />
+            </div>
+
+            {/* Right Button */}
+            {lightboxImages.length > 1 && (
+              <button 
+                onClick={handleNextLightbox}
+                className="absolute right-6 top-1/2 -translate-y-1/2 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all duration-200 z-[3100] active:scale-90"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Image Counter & Indicators */}
+            <div className="absolute bottom-6 flex flex-col items-center gap-2">
+              <span className="text-sm font-bold text-white/60 tracking-wider">
+                {lightboxIndex + 1} / {lightboxImages.length}
+              </span>
+              {lightboxImages.length > 1 && (
+                <div className="flex gap-1.5 mt-2">
+                  {lightboxImages.map((_, i) => (
+                    <button 
+                      key={i}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLightboxIndex(i);
+                      }}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${i === lightboxIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/30'}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

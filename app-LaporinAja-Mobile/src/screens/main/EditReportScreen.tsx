@@ -83,6 +83,7 @@ const LeafletMap = ({ lat, lng, onLocationSelect, isDarkMode }: any) => {
 const EditReportScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
   const { reportId } = route.params;
   const { isDarkMode, t } = useSettings();
+  const [showMapModal, setShowMapModal] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
@@ -223,6 +224,59 @@ const EditReportScreen: React.FC<{ route: any; navigation: any }> = ({ route, na
     setNewPhotos(p => p.filter(x => x !== uri));
   };
 
+  const safeReverseGeocode = async (latitude: number, longitude: number) => {
+    try {
+      const geo = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (geo && geo[0]) {
+        return {
+          alamat: geo[0].street || geo[0].name || '',
+          kelurahan: geo[0].district || '',
+          kecamatan: geo[0].subregion || '',
+          kota: geo[0].city || '',
+        };
+      }
+    } catch (nativeErr) {
+      console.warn('Native reverse geocode failed, trying OSM Nominatim fallback...', nativeErr);
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
+        {
+          headers: {
+            'User-Agent': 'LaporinAja-Mobile',
+            'Accept-Language': 'id',
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.address) {
+          const addr = data.address;
+          const street = addr.road || addr.pedestrian || addr.path || data.name || '';
+          const kelurahan = addr.village || addr.neighbourhood || addr.quarter || addr.hamlet || '';
+          const kecamatan = addr.subdistrict || addr.city_district || addr.suburb || addr.district || addr.township || addr.municipality || '';
+          const kota = addr.city || addr.town || addr.city_municipal || addr.county || addr.municipality || '';
+          return {
+            alamat: street,
+            kelurahan,
+            kecamatan,
+            kota,
+          };
+        }
+      }
+    } catch (fallbackErr) {
+      console.error('Fallback reverse geocode also failed:', fallbackErr);
+    }
+
+    return {
+      alamat: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+      kelurahan: '',
+      kecamatan: '',
+      kota: '',
+    };
+  };
+
   const getLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return;
@@ -231,30 +285,29 @@ const EditReportScreen: React.FC<{ route: any; navigation: any }> = ({ route, na
       const loc = await Location.getCurrentPositionAsync({});
       update('latitude', loc.coords.latitude);
       update('longitude', loc.coords.longitude);
-      const geo = await Location.reverseGeocodeAsync(loc.coords);
-      if (geo[0]) {
-        update('alamat', geo[0].street || geo[0].name || '');
-        update('kelurahan', geo[0].district || '');
-        update('kecamatan', geo[0].subregion || '');
-        update('kota', geo[0].city || '');
-      }
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+      const geo = await safeReverseGeocode(loc.coords.latitude, loc.coords.longitude);
+      update('alamat', geo.alamat);
+      update('kelurahan', geo.kelurahan);
+      update('kecamatan', geo.kecamatan);
+      update('kota', geo.kota);
+    } catch (err) {
+      console.error('getLocation error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLocationSelect = async (lat: number, lng: number) => {
     update('latitude', lat);
     update('longitude', lng);
     try {
-      const geo = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
-      if (geo[0]) {
-        update('alamat', geo[0].street || geo[0].name || '');
-        update('kelurahan', geo[0].district || '');
-        update('kecamatan', geo[0].subregion || '');
-        update('kota', geo[0].city || '');
-      }
+      const geo = await safeReverseGeocode(lat, lng);
+      update('alamat', geo.alamat);
+      update('kelurahan', geo.kelurahan);
+      update('kecamatan', geo.kecamatan);
+      update('kota', geo.kota);
     } catch (err) {
-      console.error('Reverse geocode error:', err);
+      console.error('handleLocationSelect error:', err);
     }
   };
 
@@ -457,14 +510,10 @@ const EditReportScreen: React.FC<{ route: any; navigation: any }> = ({ route, na
               <Text style={s.currentLocBtnT}>Gunakan Lokasi Saat Ini</Text>
             </TouchableOpacity>
 
-            <View style={[s.mapContainer, isDarkMode && { borderColor: '#334155' }]}>
-              <LeafletMap 
-                lat={form.latitude} 
-                lng={form.longitude} 
-                onLocationSelect={handleLocationSelect}
-                isDarkMode={isDarkMode}
-              />
-            </View>
+            <TouchableOpacity style={[s.currentLocBtn, { marginTop: 0, backgroundColor: isDarkMode ? '#1e293b' : 'rgba(74, 124, 68, 0.1)', borderWidth: 1, borderColor: COLORS.primary }]} onPress={() => setShowMapModal(true)}>
+              <MaterialCommunityIcons name="map" size={18} color={COLORS.primary} />
+              <Text style={[s.currentLocBtnT, { color: COLORS.primary }]}>Pilih dari Peta</Text>
+            </TouchableOpacity>
 
             <View style={s.addressInfo}>
               <MaterialCommunityIcons name="map-marker-radius" size={20} color={COLORS.primary} />
@@ -570,6 +619,33 @@ const EditReportScreen: React.FC<{ route: any; navigation: any }> = ({ route, na
               </TouchableOpacity>
               <TouchableOpacity style={s.modalConfirm} onPress={handleConfirmDate}>
                 <Text style={s.modalConfirmT}>Pilih</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Map Modal */}
+      <Modal visible={showMapModal} animationType="slide" transparent={true} onRequestClose={() => setShowMapModal(false)}>
+        <View style={s.modalOverlay}>
+          <View style={[s.modalContent, isDarkMode && { backgroundColor: '#1e293b' }, { height: '80%', width: '90%' }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <Text style={[s.modalTitle, isDarkMode && s.darkText, { marginBottom: 0 }]}>Pilih Lokasi di Peta</Text>
+              <TouchableOpacity onPress={() => setShowMapModal(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={isDarkMode ? '#fff' : COLORS.black} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 1, borderRadius: 10, overflow: 'hidden', marginBottom: 15 }}>
+              <LeafletMap 
+                lat={form.latitude} 
+                lng={form.longitude} 
+                onLocationSelect={handleLocationSelect}
+                isDarkMode={isDarkMode}
+              />
+            </View>
+            <View>
+              <TouchableOpacity style={[s.modalConfirm, { width: '100%' }]} onPress={() => setShowMapModal(false)}>
+                <Text style={[s.modalConfirmT, { textAlign: 'center' }]}>Konfirmasi Lokasi</Text>
               </TouchableOpacity>
             </View>
           </View>

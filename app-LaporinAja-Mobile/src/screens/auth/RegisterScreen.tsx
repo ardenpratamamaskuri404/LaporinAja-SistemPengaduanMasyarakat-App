@@ -46,7 +46,8 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
     
     setLoading(true);
-    const res = await register(form);
+    const payload = { ...form, kota: form.kota_kabupaten };
+    const res = await register(payload);
     setLoading(false);
     
     if (res.success) {

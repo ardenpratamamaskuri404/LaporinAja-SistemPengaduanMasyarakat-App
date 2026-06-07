@@ -50,10 +50,27 @@ const updateUserInfo = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found', data: null });
     }
 
+    // Prevent changing other SUPER_ADMIN data if requester is not SUPER_ADMIN
+    if (user.role === 'SUPER_ADMIN' && req.user.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ success: false, message: 'Hanya Super Admin yang dapat mengubah data Super Admin', data: null });
+    }
+
     if (role) {
       const validRoles = ['SUPER_ADMIN', 'ADMIN', 'MASYARAKAT'];
       if (!validRoles.includes(role)) {
         return res.status(400).json({ success: false, message: 'Invalid role provided', data: null });
+      }
+
+      // Prevent user from changing their own role to prevent lockout
+      if (role !== user.role && req.user.id === user.id) {
+        return res.status(400).json({ success: false, message: 'Anda tidak dapat mengubah role Anda sendiri untuk menghindari lockout.', data: null });
+      }
+
+      // Prevent ADMIN from assigning SUPER_ADMIN role or downgrading a SUPER_ADMIN
+      if (role !== user.role && req.user.role === 'ADMIN') {
+        if (role === 'SUPER_ADMIN' || user.role === 'SUPER_ADMIN') {
+          return res.status(403).json({ success: false, message: 'Hanya Super Admin yang dapat mengelola role Super Admin', data: null });
+        }
       }
     }
 
@@ -96,6 +113,16 @@ const deleteUser = async (req, res) => {
     const user = await prisma.users.findUnique({ where: { id: parseInt(id) } });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found', data: null });
+    }
+
+    // Prevent deleting oneself
+    if (user.id === req.user.id) {
+      return res.status(400).json({ success: false, message: 'Anda tidak dapat menghapus akun Anda sendiri', data: null });
+    }
+
+    // Prevent non-SUPER_ADMIN from deleting a SUPER_ADMIN
+    if (user.role === 'SUPER_ADMIN' && req.user.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ success: false, message: 'Hanya Super Admin yang dapat menghapus data Super Admin', data: null });
     }
 
     await prisma.users.delete({ where: { id: parseInt(id) } });
@@ -230,18 +257,56 @@ const getActivities = async (req, res) => {
 const getStats = async (req, res) => {
   try {
     const userId = req.user.id;
-    const [total, selesai, pending, proses] = await Promise.all([
+    const [total, selesai, pending, proses, ditolak, allUserReports] = await Promise.all([
       prisma.laporan.count({ where: { userId } }),
       prisma.laporan.count({ where: { userId, status: 'SELESAI' } }),
       prisma.laporan.count({ where: { userId, status: 'PENDING' } }),
-      prisma.laporan.count({ where: { userId, status: 'PROSES' } })
+      prisma.laporan.count({ where: { userId, status: 'PROSES' } }),
+      prisma.laporan.count({ where: { userId, status: 'DITOLAK' } }),
+      prisma.laporan.findMany({
+        where: { userId },
+        select: { createdAt: true, kategori: true }
+      })
     ]);
+
+    const trend = [0, 0, 0, 0, 0, 0, 0];
+    const now = new Date();
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(now.getDate() - 7);
+
+    const categoryMap = {};
+
+    allUserReports.forEach(r => {
+      if (r.kategori) {
+        if (!categoryMap[r.kategori]) categoryMap[r.kategori] = 0;
+        categoryMap[r.kategori]++;
+      }
+      if (r.createdAt >= oneWeekAgo) {
+        const day = r.createdAt.getDay();
+        const index = day === 0 ? 6 : day - 1;
+        trend[index]++;
+      }
+    });
+
+    const categoryColors = ['#4a7c44', '#99c399', '#f59e0b', '#0ea5e9', '#ef4444', '#8b5cf6', '#eab308'];
+    const categories = Object.keys(categoryMap).map((k, i) => ({
+      name: k,
+      count: categoryMap[k],
+      color: categoryColors[i % categoryColors.length],
+      legendFontColor: '#7f7f7f',
+      legendFontSize: 12
+    }));
+
     res.json({ 
       success: true, 
       data: { 
         total, 
         selesai, 
-        pending: pending + proses
+        pending,
+        proses,
+        ditolak,
+        weeklyTrend: trend,
+        categories: categories.length ? categories : undefined
       } 
     });
   } catch (error) {

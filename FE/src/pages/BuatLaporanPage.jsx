@@ -168,9 +168,9 @@ const BuatLaporanPage = () => {
             latitude: lat,
             longitude: lng,
             alamat: alamatLengkap || prev.alamat,
-            kelurahan: address.village || address.suburb || address.neighbourhood || prev.kelurahan,
-            kecamatan: address.district || address.city_district || prev.kecamatan,
-            kota: address.city || address.town || address.county || address.state || prev.kota
+            kelurahan: address.village || address.neighbourhood || address.quarter || address.hamlet || prev.kelurahan,
+            kecamatan: address.subdistrict || address.city_district || address.suburb || address.district || address.township || address.municipality || prev.kecamatan,
+            kota: address.city || address.town || address.city_municipal || address.county || address.municipality || prev.kota
           }));
         }
       }
@@ -183,11 +183,18 @@ const BuatLaporanPage = () => {
 
   // Map click handler component
   const LocationPicker = () => {
-    useMapEvents({
+    const map = useMapEvents({
       click(e) {
         fetchAddressFromCoords(e.latlng.lat, e.latlng.lng);
       },
     });
+
+    useEffect(() => {
+      if (formData.latitude && formData.longitude && map) {
+        map.setView([formData.latitude, formData.longitude], map.getZoom());
+      }
+    }, [formData.latitude, formData.longitude, map]);
+
     return (
       <Marker position={[formData.latitude, formData.longitude]} />
     );

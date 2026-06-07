@@ -20,12 +20,13 @@ interface HomeStats {
   selesai: number;
   pending: number;
   proses: number;
+  ditolak?: number;
 }
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { user } = useAuth();
   const { isDarkMode, t } = useSettings();
-  const [stats, setStats] = useState<HomeStats>({ total: 0, selesai: 0, pending: 0, proses: 0 });
+  const [stats, setStats] = useState<HomeStats>({ total: 0, selesai: 0, pending: 0, proses: 0, ditolak: 0 });
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -156,6 +157,15 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <View>
               <Text style={[s.statNum, isDarkMode && s.darkText]}>{stats.selesai || 0}</Text>
               <Text style={s.statLabel}>Selesai</Text>
+            </View>
+          </View>
+          <View style={[s.statChip, isDarkMode && s.darkCard]}>
+            <View style={[s.statIcon, { backgroundColor: '#fef2f2' }]}>
+              <MaterialCommunityIcons name="close-circle-outline" size={18} color="#ef4444" />
+            </View>
+            <View>
+              <Text style={[s.statNum, isDarkMode && s.darkText]}>{stats.ditolak || 0}</Text>
+              <Text style={s.statLabel}>Ditolak</Text>
             </View>
           </View>
         </ScrollView>
