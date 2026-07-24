@@ -1,0 +1,49 @@
+# ==========================================
+# Environment Variables & Sensitive Files
+# ==========================================
+.env
+.env.*
+*.env
+!.env.example
+!.env*.example
+
+# ==========================================
+# Planning & Agent Folders
+# ==========================================
+planning-folder/
+planning/
+.agents/
+.gemini/
+brain/
+
+# ==========================================
+# Dependencies & Build Outputs
+# ==========================================
+node_modules/
+dist/
+dist-ssr/
+build/
+.expo/
+web-build/
+*.tsbuildinfo
+
+# ==========================================
+# Backend Specific Ignores
+# ==========================================
+BE/uploads/*
+!BE/uploads/.gitkeep
+BE/generated/prisma/
+
+# ==========================================
+# System & Editor Files
+# ==========================================
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vscode/*
+!.vscode/extensions.json
+.idea/

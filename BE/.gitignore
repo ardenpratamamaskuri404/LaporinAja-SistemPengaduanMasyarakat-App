@@ -1,5 +1,16 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# Dependencies
+node_modules/
 
-/generated/prisma
+# Environment Variables
+.env
+.env.*
+*.env
+!.env.example
+!.env*.example
+
+# Uploads & Generated Files
+uploads/*
+!uploads/.gitkeep
+generated/prisma/
+dist/
+*.log

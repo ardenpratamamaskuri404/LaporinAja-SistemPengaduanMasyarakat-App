@@ -2,9 +2,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// Ganti dengan URL ngrok kamu sendiri!
-// Contoh: 'https://abc123.ngrok-free.app'
-export const BASE_URL = 'https://wisdom-detection-uncharted.ngrok-free.dev';
+// URL backend dapat diatur via file .env (EXPO_PUBLIC_API_URL)
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://wisdom-detection-uncharted.ngrok-free.dev';
 
 const api = axios.create({
   baseURL: `${BASE_URL}/api`,
